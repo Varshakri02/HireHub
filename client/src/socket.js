@@ -7,7 +7,10 @@ export function connectSocket() {
   const token = localStorage.getItem("token");
   if (!token) return null;
   if (socket) return socket;
-  socket = io("/", { auth: { token }, autoConnect: true });
+  // Dev: same-origin ("/") via Vite proxy. Prod: direct to the backend origin
+  // (WebSocket upgrade can't be proxied by Vercel rewrites, so connect directly).
+  const url = import.meta.env.VITE_SOCKET_URL || "/";
+  socket = io(url, { auth: { token }, autoConnect: true });
   return socket;
 }
 

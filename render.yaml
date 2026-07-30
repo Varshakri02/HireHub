@@ -1,0 +1,18 @@
+# Render Blueprint for the HireHub backend (Express + Socket.io).
+# Free plan: sleeps after ~15 min idle; disk is EPHEMERAL so data resets on
+# restart/redeploy (seedDemo repopulates on boot). Fine for a demo.
+services:
+  - type: web
+    name: hirehub-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      # Vercel client URL — needed for Socket.io CORS. Set after the client deploys.
+      - key: CLIENT_ORIGIN
+        sync: false
+      # Any email+password logs in / auto-creates. Set "false" to enforce real creds.
+      - key: DEMO_AUTH
+        value: "true"
