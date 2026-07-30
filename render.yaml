@@ -3,7 +3,7 @@
 # restart/redeploy (seedDemo repopulates on boot). Fine for a demo.
 services:
   - type: web
-    name: hirehub-api
+    name: hire
     runtime: node
     rootDir: server
     plan: free
