@@ -3,6 +3,18 @@
 Full-stack job platform: profiles, a document feed, job posting + applications, and
 real-time chat.
 
+## Live demo
+
+- **App:** https://client-steel-eta-12.vercel.app
+- **API health:** https://hire-95iz.onrender.com/api/health
+
+Demo auth is on — log in with **any** email + password (account auto-created).
+Admin dashboard: log in as `admin@hirehub.com`.
+
+> Backend runs on Render's free tier: it **sleeps after ~15 min idle**, so the first
+> request after a nap takes ~30–50s to wake. The disk is **ephemeral** — accounts,
+> messages, and uploads reset on every restart/redeploy; demo data re-seeds on boot.
+
 ## Features
 
 - **Auth** — register / login with JWT + bcrypt password hashing.
@@ -24,7 +36,7 @@ real-time chat.
 
 - **Node.js 22.5+** (needs the built-in `node:sqlite` module; tested on Node 24).
 
-## Run it
+## Run it locally
 
 Open two terminals.
 
@@ -55,7 +67,37 @@ backend, so no CORS or env config is needed for local dev.
 4. Watch the chat update live and the unread badge appear in the nav.
 5. Post a document on the feed — it shows inline (images) or as a download card.
 
-## Configuration (optional env vars)
+## Deployment (cloud)
+
+Client on **Vercel**, backend on **Render** — both connected to this GitHub repo, so
+**every push to `main` auto-redeploys both**. No local process needed.
+
+**How requests flow in production:**
+
+- Browser → Vercel. `/api/*` and `/uploads/*` are **rewritten** (proxied) to the
+  Render backend by [`client/vercel.json`](client/vercel.json) — same-origin to the
+  browser, so no CORS.
+- Socket.io connects **directly** to Render via `VITE_SOCKET_URL` (a WebSocket upgrade
+  can't be proxied through Vercel rewrites), so that var must be set on the client.
+  Render's CORS allows the Vercel origin via `CLIENT_ORIGIN`.
+
+**Render** (service `hire`, root dir `server`, `npm install` / `npm start`):
+
+| Var             | Value                                        |
+| --------------- | -------------------------------------------- |
+| `CLIENT_ORIGIN` | `https://client-steel-eta-12.vercel.app`     |
+| `DEMO_AUTH`     | `true`                                       |
+
+**Vercel** (root dir `client`, framework Vite):
+
+| Var               | Value                             |
+| ----------------- | --------------------------------- |
+| `VITE_SOCKET_URL` | `https://hire-95iz.onrender.com`  |
+
+`client/vercel.json` rewrites already target `hire-95iz.onrender.com`. Step-by-step
+first-time setup lives in [`DEPLOY.md`](DEPLOY.md).
+
+## Configuration (all env vars)
 
 Backend reads these (defaults shown):
 
@@ -64,8 +106,16 @@ Backend reads these (defaults shown):
 | `PORT`          | `4000`                         | API + socket port           |
 | `JWT_SECRET`    | `dev-secret-change-me-...`     | **change in production**    |
 | `CLIENT_ORIGIN` | `http://localhost:5173`        | CORS / socket origin        |
+| `DEMO_AUTH`     | `true`                         | any email+password logs in  |
+| `ADMIN_EMAIL`   | `admin@hirehub.com`            | auto-promoted to admin      |
 | `DB_PATH`       | `server/data.db`               | SQLite file location        |
 | `UPLOAD_DIR`    | `server/uploads`               | uploaded files directory    |
+
+Client (build-time, Vite):
+
+| Var               | Default | Purpose                                             |
+| ----------------- | ------- | --------------------------------------------------- |
+| `VITE_SOCKET_URL` | `/`     | Socket.io origin in prod (direct to backend origin) |
 
 ## Project layout
 
