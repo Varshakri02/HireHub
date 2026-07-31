@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://hire.onrender.com/api/:path*"
+      "destination": "https://hire-95iz.onrender.com/api/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://hire.onrender.com/uploads/:path*"
+      "destination": "https://hire-95iz.onrender.com/uploads/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
