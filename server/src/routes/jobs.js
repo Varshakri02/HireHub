@@ -58,6 +58,24 @@ router.get("/mine/postings", requireAuth, (req, res) => {
   res.json(rows);
 });
 
+// Postings created by a given user — powers the "Open Roles" block on a profile.
+// applicant_count is public (it already is on the job list); per-status counts are
+// only filled in when you are looking at your own postings.
+router.get("/by/:userId", requireAuth, (req, res) => {
+  const isSelf = Number(req.params.userId) === req.user.id;
+  const rows = db
+    .prepare(
+      `SELECT j.*,
+              (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) AS applicant_count,
+              (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id AND a.status = 'pending') AS pending_count
+       FROM jobs j
+       WHERE j.poster_id = ?
+       ORDER BY j.created_at DESC`
+    )
+    .all(req.params.userId);
+  res.json(isSelf ? rows : rows.map(({ pending_count, ...j }) => j));
+});
+
 router.get("/:id", requireAuth, (req, res) => {
   const job = db
     .prepare(

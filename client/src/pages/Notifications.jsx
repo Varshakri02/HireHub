@@ -13,23 +13,25 @@ export default function Notifications() {
   useEffect(() => {
     Promise.all([
       api.get("/applications/mine").then((r) => r.data).catch(() => []),
-      api.get("/jobs").then((r) => r.data).catch(() => []),
-    ]).then(([apps, jobs]) => {
+      api.get("/applications/received").then((r) => r.data).catch(() => []),
+    ]).then(([apps, received]) => {
       const feed = [];
       for (const a of apps) {
         feed.push({
           when: a.created_at,
-          icon: a.status === "accepted" ? "🎉" : a.status === "rejected" ? "❌" : "📋",
+          icon: a.status === "accepted" ? "celebration" : a.status === "rejected" ? "cancel" : "assignment",
           text: <>Your application to <b>{a.job_title}</b> at {a.job_company} is <span className={`status-pill status-${a.status}`}>{a.status}</span></>,
           to: `/jobs/${a.job_id}`,
         });
       }
-      for (const j of jobs.filter((x) => x.poster_id === user?.id && x.applicant_count > 0)) {
+      // One entry per applicant, stamped with when they applied — not when the job
+      // was posted, which buried new applications under the posting's own date.
+      for (const a of received) {
         feed.push({
-          when: j.created_at,
-          icon: "👤",
-          text: <><b>{j.applicant_count}</b> applicant{j.applicant_count === 1 ? "" : "s"} on your posting <b>{j.title}</b></>,
-          to: `/jobs/${j.id}/manage`,
+          when: a.created_at,
+          icon: "person_add",
+          text: <><b>{a.applicant_name}</b> applied to your posting <b>{a.job_title}</b> <span className={`status-pill status-${a.status}`}>{a.status}</span></>,
+          to: `/jobs/${a.job_id}/manage`,
         });
       }
       feed.sort((a, b) => (a.when < b.when ? 1 : -1));
@@ -46,7 +48,7 @@ export default function Notifications() {
         items.map((it, i) => (
           <Link to={it.to} key={i}>
             <div className="card row" style={{ textDecoration: "none", color: "inherit" }}>
-              <div style={{ fontSize: 22 }}>{it.icon}</div>
+              <div className="notif-ico"><span className="material-symbols-outlined">{it.icon}</span></div>
               <div className="grow">{it.text}</div>
               <div className="muted tiny">{timeAgo(it.when)}</div>
             </div>

@@ -46,6 +46,23 @@ router.get("/mine", requireAuth, (req, res) => {
   res.json(rows);
 });
 
+// Applications received across every posting I own (recruiter notifications view).
+// One row per applicant, carrying the application's own timestamp — not the job's.
+router.get("/received", requireAuth, (req, res) => {
+  const rows = db
+    .prepare(
+      `SELECT a.*, j.title AS job_title, j.company AS job_company,
+              u.name AS applicant_name, u.headline AS applicant_headline,
+              u.avatar_url AS applicant_avatar
+       FROM applications a
+       JOIN jobs j  ON j.id = a.job_id
+       JOIN users u ON u.id = a.applicant_id
+       WHERE j.poster_id = ? ORDER BY a.created_at DESC`
+    )
+    .all(req.user.id);
+  res.json(rows);
+});
+
 // Update application status — only the job's poster may do this.
 router.put("/:id/status", requireAuth, (req, res) => {
   const { status } = req.body || {};

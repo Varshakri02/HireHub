@@ -27,6 +27,7 @@ export default function Profile() {
   const [posts, setPosts] = useState([]);
   const [exps, setExps] = useState([]);
   const [people, setPeople] = useState([]);
+  const [postings, setPostings] = useState([]);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [addExp, setAddExp] = useState(false);
@@ -41,6 +42,7 @@ export default function Profile() {
     api.get(`/posts/user/${id}`).then((r) => setPosts(r.data)).catch(() => {});
     api.get(`/experiences/user/${id}`).then((r) => setExps(r.data)).catch(() => {});
     api.get(`/users/suggestions/people`).then((r) => setPeople(r.data.filter((p) => p.id !== Number(id)))).catch(() => {});
+    api.get(`/jobs/by/${id}`).then((r) => setPostings(r.data)).catch(() => setPostings([]));
   }, [id]);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -106,7 +108,7 @@ export default function Profile() {
                   {isMe ? (
                     <button onClick={() => setEditing(true)}>Edit Profile</button>
                   ) : (
-                    <Link to={`/messages/${profile.id}`}><button>💬 Message</button></Link>
+                    <Link to={`/messages/${profile.id}`}><button><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button></Link>
                   )}
                   <button className="secondary">Share</button>
                 </div>
@@ -138,7 +140,7 @@ export default function Profile() {
           <div className="card">
             <div className="spread">
               <h3>About Me</h3>
-              {isMe && !editing && <button className="x-btn" onClick={() => setEditing(true)}>✏️</button>}
+              {isMe && !editing && <button className="x-btn" onClick={() => setEditing(true)}><span className="material-symbols-outlined ui-ico">edit</span></button>}
             </div>
             <p className="post-body" style={{ marginTop: 0 }}>
               {profile.bio || <span className="muted">No summary yet.</span>}
@@ -149,7 +151,7 @@ export default function Profile() {
           <div className="card">
             <div className="spread">
               <h3>Work Experience</h3>
-              {isMe && <button className="x-btn" title="Add" onClick={() => setAddExp((v) => !v)}>＋</button>}
+              {isMe && <button className="x-btn" title="Add" onClick={() => setAddExp((v) => !v)}><span className="material-symbols-outlined ui-ico">add</span></button>}
             </div>
             {addExp && (
               <ExpForm onCancel={() => setAddExp(false)} onAdded={(row) => { setExps([row, ...exps]); setAddExp(false); }} />
@@ -172,7 +174,7 @@ export default function Profile() {
                       </div>
                       {isMe && (
                         <button className="x-btn" title="Remove"
-                          onClick={async () => { await api.delete(`/experiences/${x.id}`); setExps(exps.filter((e) => e.id !== x.id)); }}>🗑️</button>
+                          onClick={async () => { await api.delete(`/experiences/${x.id}`); setExps(exps.filter((e) => e.id !== x.id)); }}><span className="material-symbols-outlined ui-ico">delete</span></button>
                       )}
                     </div>
                   </div>
@@ -180,6 +182,32 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Open roles — postings this user owns, with live applicant counts */}
+          {postings.length > 0 && (
+            <div className="card">
+              <div className="spread">
+                <h3>Open Roles</h3>
+                <span className="muted tiny">{postings.length} posting{postings.length === 1 ? "" : "s"}</span>
+              </div>
+              <div className="role-list">
+                {postings.map((j) => (
+                  <Link to={isMe ? `/jobs/${j.id}/manage` : `/jobs/${j.id}`} className="role-row" key={j.id}>
+                    <div className="exp-logo"><Icon name="apartment" /></div>
+                    <div className="grow">
+                      <div className="exp-title">{j.title}</div>
+                      <div className="muted tiny">{j.company} · {j.location || "—"} · {j.workplace}</div>
+                    </div>
+                    <div className="role-count">
+                      <b>{j.applicant_count}</b>
+                      <span>applicant{j.applicant_count === 1 ? "" : "s"}</span>
+                      {isMe && j.pending_count > 0 && <em>{j.pending_count} pending</em>}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Activity */}
           {posts.length > 0 && (
@@ -189,7 +217,7 @@ export default function Profile() {
                 <div key={p.id} style={{ borderTop: "1px solid var(--border)", paddingTop: 8, marginTop: 8 }}>
                   <div className="muted tiny">{timeAgo(p.created_at)}</div>
                   {p.body && <div className="post-body">{p.body}</div>}
-                  {p.doc_url && <a href={p.doc_url} target="_blank" rel="noreferrer">📎 {p.doc_name || "Document"}</a>}
+                  {p.doc_url && <a href={p.doc_url} target="_blank" rel="noreferrer"><span className="material-symbols-outlined ui-ico">attach_file</span> {p.doc_name || "Document"}</a>}
                 </div>
               ))}
             </div>
@@ -233,14 +261,14 @@ function ProfileEditForm({ form, set, save, busy, error, onCancel, pickAvatar, p
     <div className="card-pad">
       <form onSubmit={save}>
         <div className="profile-banner" style={form.banner_url ? { backgroundImage: `url(${form.banner_url})` } : undefined}>
-          <label className="ghost small" style={{ cursor: "pointer", position: "absolute", right: 10, top: 10, background: "#fff" }}>
-            📷 Banner<input type="file" accept="image/*" onChange={pickBanner} style={{ display: "none" }} />
+          <label className="ghost small" style={{ cursor: "pointer", position: "absolute", right: 10, top: 10, background: "var(--card)" }}>
+            <span className="material-symbols-outlined ui-ico">photo_camera</span> Banner<input type="file" accept="image/*" onChange={pickBanner} style={{ display: "none" }} />
           </label>
         </div>
         <div style={{ marginTop: -50, marginBottom: 8 }}>
           <Avatar user={form} size={96} />
           <label className="ghost small" style={{ cursor: "pointer", marginLeft: 10 }}>
-            📷 Photo<input type="file" accept="image/*" onChange={pickAvatar} style={{ display: "none" }} />
+            <span className="material-symbols-outlined ui-ico">photo_camera</span> Photo<input type="file" accept="image/*" onChange={pickAvatar} style={{ display: "none" }} />
           </label>
         </div>
         <label>Name</label><input value={form.name || ""} onChange={set("name")} required />
@@ -267,7 +295,7 @@ function ExpForm({ onCancel, onAdded }) {
     catch (err) { setError(errMsg(err)); setBusy(false); }
   }
   return (
-    <div className="card" style={{ background: "#f8fafd" }}>
+    <div className="card" style={{ background: "var(--surface-low)" }}>
       <form onSubmit={submit}>
         <label>Title *</label><input value={f.title} onChange={set("title")} required />
         <div className="row">

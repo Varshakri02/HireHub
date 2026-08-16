@@ -98,7 +98,7 @@ export default function Feed() {
           </div>
           <div className="filter-h tiny muted" style={{ textTransform: "uppercase", letterSpacing: 0.4, marginTop: 8 }}>Groups</div>
           <div className="side-list">
-            {GROUPS.map((g) => <a key={g}>👥 {g}</a>)}
+            {GROUPS.map((g) => <a key={g}><span className="material-symbols-outlined ui-ico">groups</span> {g}</a>)}
           </div>
         </div>
       </aside>
@@ -127,14 +127,14 @@ export default function Feed() {
           {error && <div className="error">{error}</div>}
           <div className="composer-actions">
             <label className="act" style={{ cursor: "pointer" }}>
-              🖼️ Photo
+              <span className="material-symbols-outlined ui-ico">image</span> Photo
               <input ref={fileRef} type="file" onChange={attach} style={{ display: "none" }} accept="image/*" />
             </label>
             <label className="act" style={{ cursor: "pointer" }}>
-              📄 Document
+              <span className="material-symbols-outlined ui-ico">description</span> Document
               <input type="file" onChange={attach} style={{ display: "none" }} accept=".pdf,.doc,.docx,.txt" />
             </label>
-            <button type="button" className="act" onClick={() => setComposing(true)}>📅 Event</button>
+            <button type="button" className="act" onClick={() => setComposing(true)}><span className="material-symbols-outlined ui-ico">event</span> Event</button>
             <button className="small" disabled={busy || (!body.trim() && !doc)} onClick={submit}>
               {busy ? "Posting…" : "Post"}
             </button>
@@ -155,10 +155,10 @@ export default function Feed() {
                 <div className="grow">
                   <Link to={`/profile/${p.author_id}`}><strong>{p.author_name}</strong></Link>
                   <div className="muted tiny">{p.author_headline}</div>
-                  <div className="muted tiny">{timeAgo(p.created_at)} · 🌐</div>
+                  <div className="muted tiny">{timeAgo(p.created_at)} · <span className="material-symbols-outlined ui-ico tiny-ico">public</span></div>
                 </div>
                 {p.author_id === user?.id && (
-                  <button className="x-btn" title="Delete" onClick={() => del(p.id)}>🗑️</button>
+                  <button className="x-btn" title="Delete" onClick={() => del(p.id)}><span className="material-symbols-outlined ui-ico">delete</span></button>
                 )}
               </div>
               {p.body && <div className="post-body">{p.body}</div>}
@@ -170,14 +170,14 @@ export default function Feed() {
                 <DocAttach url={p.doc_url} name={p.doc_name} type={p.doc_type} />
               )}
               <div className="post-counts">
-                <span>👍❤️ {liked[p.id] ? "You and others" : "842 others"}</span>
+                <span><span className="material-symbols-outlined react-ico fill">favorite</span> {liked[p.id] ? "You and others" : "842 others"}</span>
                 <span>42 comments · 12 reposts</span>
               </div>
               <div className="post-actions">
-                <button className={`act ${liked[p.id] ? "liked" : ""}`} onClick={() => setLiked((l) => ({ ...l, [p.id]: !l[p.id] }))}>👍 Like</button>
-                <button className="act">💬 Comment</button>
-                <button className="act">🔁 Repost</button>
-                <Link to={`/messages/${p.author_id}`} className="act" style={{ textDecoration: "none" }}>➤ Send</Link>
+                <button className={`act ${liked[p.id] ? "liked" : ""}`} onClick={() => setLiked((l) => ({ ...l, [p.id]: !l[p.id] }))}><span className="material-symbols-outlined ui-ico">thumb_up</span> Like</button>
+                <button className="act"><span className="material-symbols-outlined ui-ico">mode_comment</span> Comment</button>
+                <button className="act"><span className="material-symbols-outlined ui-ico">repeat</span> Repost</button>
+                <Link to={`/messages/${p.author_id}`} className="act" style={{ textDecoration: "none" }}><span className="material-symbols-outlined ui-ico">send</span> Send</Link>
               </div>
             </div>
           ))
@@ -205,7 +205,7 @@ export default function Feed() {
                 <Link to={`/profile/${p.id}`}><strong>{p.name}</strong></Link>
                 <div className="muted tiny">{p.headline}</div>
                 <Link to={`/messages/${p.id}`}>
-                  <button className="ghost small" style={{ marginTop: 6 }}>💬 Message</button>
+                  <button className="ghost small" style={{ marginTop: 6 }}><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button>
                 </Link>
               </div>
             </div>

@@ -71,7 +71,7 @@ export default function JobManage() {
               {STATUSES.map((s) => (
                 <button key={s} className="ghost small" disabled={a.status === s} onClick={() => setStatus(a.id, s)}>{s}</button>
               ))}
-              <Link to={`/messages/${a.applicant_id}`}><button className="small">💬 Message</button></Link>
+              <Link to={`/messages/${a.applicant_id}`}><button className="small"><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button></Link>
             </div>
           </div>
         ))

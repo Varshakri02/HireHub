@@ -38,7 +38,7 @@ export default function Network() {
               <h4 style={{ margin: "8px 0 2px" }}><Link to={`/profile/${p.id}`}>{p.name}</Link></h4>
               <div className="muted tiny" style={{ minHeight: 32 }}>{p.headline}</div>
               <div className="muted tiny">{p.location}</div>
-              <Link to={`/messages/${p.id}`}><button className="secondary small block" style={{ marginTop: 10 }}>💬 Message</button></Link>
+              <Link to={`/messages/${p.id}`}><button className="secondary small block" style={{ marginTop: 10 }}><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button></Link>
             </div>
           ))}
         </div>}

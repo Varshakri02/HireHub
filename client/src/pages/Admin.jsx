@@ -56,7 +56,7 @@ export default function Admin() {
   return (
     <div className="container" style={{ maxWidth: 1128 }}>
       <div className="spread" style={{ alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>🛡️ Admin — Message Oversight</h2>
+        <h2 style={{ margin: 0 }}><span className="material-symbols-outlined head-ico">shield_person</span> Admin — Message Oversight</h2>
         <span className="muted tiny">Read-only. Viewing does not mark anything read.</span>
       </div>
 
@@ -149,7 +149,7 @@ export default function Admin() {
             <div className="chat-main">
               {!selected ? (
                 <div className="spinner" style={{ margin: "auto" }}>
-                  🛡️<br />Select a conversation to inspect it.
+                  <span className="material-symbols-outlined empty-ico">shield_person</span><br />Select a conversation to inspect it.
                 </div>
               ) : (
                 <>

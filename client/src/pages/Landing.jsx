@@ -1,6 +1,10 @@
-// Public landing page — reproduces the Stitch "Vertex — Find Your Next Career" screen.
+// Public landing page — same sections, links and search behaviour as before.
+// Visual layer only: 3D ember field behind the hero, perspective grid floor,
+// marquee trust strip and an asymmetric bento of categories.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ParticleField from "../components/ParticleField.jsx";
+import { useScrollReveal, trackBloom } from "../components/Reveal.jsx";
 
 // Material Symbols icon.
 function Icon({ name, fill = false, size, className = "" }) {
@@ -23,11 +27,20 @@ const FEATURES = [
   { icon: "insights", title: "Salary Transparency", body: "Upfront compensation details help you make informed career decisions." },
   { icon: "person_search", title: "Direct Connections", body: "Skip the middleman and communicate directly with hiring managers." },
 ];
+const TRUSTED = [
+  { icon: "cloud", name: "Aether" },
+  { icon: "dataset", name: "NexusData" },
+  { icon: "account_tree", name: "Lumina" },
+  { icon: "public", name: "GlobalSys" },
+  { icon: "monitoring", name: "Apex" },
+];
 
 export default function Landing() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("");
+
+  useScrollReveal();
 
   function search(e) {
     e.preventDefault();
@@ -59,59 +72,72 @@ export default function Landing() {
       </nav>
 
       <main style={{ flex: 1 }}>
-        {/* Hero */}
-        <section className="lp-hero">
-          <div className="lp-badge">
-            <Icon name="work" size={16} />
-            <span>Over 10,000 new premium roles added this week</span>
-          </div>
-          <h1 className="lp-title">
-            Find your next career <span>milestone</span>
-          </h1>
-          <p className="lp-sub">
-            Connect with top-tier employers and discover opportunities that match your
-            expertise. The modern platform for professional growth.
-          </p>
+        {/* Hero — ember field + perspective floor sit behind the content */}
+        <div className="lp-hero-stage">
+          <div className="lp-hero-glow" aria-hidden="true" />
+          <ParticleField className="lp-hero-canvas" />
+          <div className="lp-grid-floor" aria-hidden="true" />
 
-          <form className="lp-search" onSubmit={search}>
-            <div className="lp-field">
-              <Icon name="search" />
-              <input
-                placeholder="Job title, keyword, or company"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
+          <section className="lp-hero">
+            <div className="lp-badge">
+              <Icon name="local_fire_department" size={16} />
+              <span><b>10,000+</b> premium roles added this week</span>
             </div>
-            <div className="lp-search-sep" />
-            <div className="lp-field loc">
-              <Icon name="location_on" />
-              <input
-                placeholder="City, state, or remote"
-                value={loc}
-                onChange={(e) => setLoc(e.target.value)}
-              />
-            </div>
-            <button type="submit">Search Jobs</button>
-          </form>
-        </section>
+            <h1 className="lp-title">
+              Find your next career <span>milestone</span>
+            </h1>
+            <p className="lp-sub">
+              Connect with top-tier employers and discover opportunities that match your
+              expertise. The modern platform for professional growth.
+            </p>
 
-        {/* Trusted by */}
+            <form className="lp-search" onSubmit={search}>
+              <div className="lp-field">
+                <Icon name="search" />
+                <input
+                  placeholder="Job title, keyword, or company"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
+              <div className="lp-search-sep" />
+              <div className="lp-field loc">
+                <Icon name="location_on" />
+                <input
+                  placeholder="City, state, or remote"
+                  value={loc}
+                  onChange={(e) => setLoc(e.target.value)}
+                />
+              </div>
+              <button type="submit">Search Jobs</button>
+            </form>
+
+            <div className="lp-hero-stats">
+              <div className="st"><b>12,400</b><span>Open roles</span></div>
+              <div className="st"><b>2,800</b><span>Hiring teams</span></div>
+              <div className="st"><b>48h</b><span>Median reply</span></div>
+            </div>
+          </section>
+        </div>
+
+        {/* Trusted by — marquee, pauses on hover */}
         <section className="lp-trusted">
           <div className="lp-trusted-inner">
             <p>Trusted by innovative companies</p>
             <div className="lp-logos">
-              <span className="co"><Icon name="cloud" />Aether</span>
-              <span className="co"><Icon name="dataset" />NexusData</span>
-              <span className="co"><Icon name="account_tree" />Lumina</span>
-              <span className="co"><Icon name="public" />GlobalSys</span>
-              <span className="co"><Icon name="monitoring" />Apex</span>
+              {[...TRUSTED, ...TRUSTED].map((c, i) => (
+                <span className="co" key={`${c.name}-${i}`} aria-hidden={i >= TRUSTED.length}>
+                  <Icon name={c.icon} />
+                  {c.name}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
         {/* Featured categories */}
         <section className="lp-section">
-          <div className="lp-section-head">
+          <div className="lp-section-head reveal">
             <div>
               <h2>Featured Categories</h2>
               <p className="muted">Explore roles tailored to your expertise.</p>
@@ -121,15 +147,20 @@ export default function Landing() {
             </Link>
           </div>
           <div className="lp-bento">
-            <Link to="/jobs" className="lp-cat lp-cat-lg">
+            <Link to="/jobs" className="lp-cat lp-cat-lg reveal" onPointerMove={trackBloom}>
               <div className="lp-cat-iconbox"><Icon name="code" /></div>
               <div>
                 <h3>Software Engineering</h3>
-                <p className="muted" style={{ marginTop: 4 }}>2,450+ open roles in Frontend, Backend, and Full Stack.</p>
+                <p className="muted" style={{ marginTop: 6 }}>2,450+ open roles in Frontend, Backend, and Full Stack.</p>
               </div>
             </Link>
-            {CATEGORIES_MED.map((c) => (
-              <Link to="/jobs" className="lp-cat" key={c.label}>
+            {CATEGORIES_MED.map((c, i) => (
+              <Link
+                to="/jobs"
+                className={`lp-cat reveal d${i + 1}`}
+                key={c.label}
+                onPointerMove={trackBloom}
+              >
                 <div className="spread" style={{ alignItems: "flex-start" }}>
                   <Icon name={c.icon} />
                   <span className="lp-cat-pill">{c.jobs}</span>
@@ -141,16 +172,16 @@ export default function Landing() {
         </section>
       </main>
 
-      {/* Why Vertex */}
+      {/* Why HireHub */}
       <section className="lp-why">
         <div className="lp-why-inner">
-          <div className="lp-why-head">
+          <div className="lp-why-head reveal">
             <h2>Why HireHub</h2>
             <p>Designed for clarity and efficiency, prioritizing your professional journey.</p>
           </div>
           <div className="lp-why-grid">
-            {FEATURES.map((f) => (
-              <div className="lp-feature" key={f.title}>
+            {FEATURES.map((f, i) => (
+              <div className={`lp-feature reveal d${i + 1}`} key={f.title}>
                 <div className="lp-icon-box"><Icon name={f.icon} /></div>
                 <h3>{f.title}</h3>
                 <p>{f.body}</p>
@@ -163,32 +194,62 @@ export default function Landing() {
       {/* Footer */}
       <footer className="lp-footer">
         <div className="lp-foot-grid">
-          <div>
-            <Link to="/" className="lp-brand" style={{ fontSize: 20, marginBottom: 12 }}>
+          <div className="lp-foot-brand">
+            <Link to="/" className="lp-brand" style={{ fontSize: 20 }}>
               <Icon name="hexagon" fill /> HireHub
             </Link>
-            <p className="muted tiny">The modern platform for finding your next career milestone.</p>
+            <p className="muted tiny">
+              The modern platform for finding your next career milestone. Verified roles,
+              transparent pay, direct lines to the people who hire.
+            </p>
+            <div className="lp-social">
+              <a href="#" aria-label="Website"><Icon name="language" /></a>
+              <a href="#" aria-label="Email us"><Icon name="mail" /></a>
+              <a href="#" aria-label="Community"><Icon name="forum" /></a>
+              <a href="#" aria-label="Newsroom"><Icon name="rss_feed" /></a>
+            </div>
+            <div className="lp-foot-stat">
+              <i className="lp-dot" />
+              12,400 open roles · 2,800 hiring teams
+            </div>
+          </div>
+
+          <div className="lp-foot-col">
+            <h4>Platform</h4>
+            <Link to="/jobs">Find Jobs</Link>
+            <Link to="/jobs">Post a Job</Link>
+            <Link to="/network">Companies</Link>
+            <a href="#">Salary Guide</a>
           </div>
           <div className="lp-foot-col">
             <h4>Company</h4>
             <a href="#">About</a>
             <a href="#">Careers</a>
+            <a href="#">Press</a>
+            <a href="#">Contact</a>
+          </div>
+          <div className="lp-foot-col">
+            <h4>Resources</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Hiring Guides</a>
+            <a href="#">Blog</a>
+            <a href="#">Status</a>
           </div>
           <div className="lp-foot-col">
             <h4>Legal</h4>
             <a href="#">Privacy Policy</a>
             <a href="#">Terms</a>
-          </div>
-          <div className="lp-foot-col">
-            <h4>Connect</h4>
-            <div className="row" style={{ color: "var(--muted)" }}>
-              <a href="#"><Icon name="language" /></a>
-              <a href="#"><Icon name="mail" /></a>
-            </div>
+            <a href="#">Cookies</a>
+            <a href="#">Security</a>
           </div>
         </div>
         <div className="lp-foot-bottom">
           <p>© 2024 HireHub Recruitment. All rights reserved.</p>
+          <div className="lp-foot-meta">
+            <span className="lp-status"><i />All systems operational</span>
+            <span className="sep">·</span>
+            <span>EN · Global</span>
+          </div>
         </div>
       </footer>
     </div>

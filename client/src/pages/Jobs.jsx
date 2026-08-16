@@ -165,7 +165,7 @@ export default function Jobs() {
                   <div key={j.id}
                     className={`job-li ${(selected?.id === j.id) ? "active" : ""}`}
                     onClick={() => navigate(`/jobs/${j.id}`)}>
-                    <div className="job-logo">🏢</div>
+                    <div className="job-logo"><span className="material-symbols-outlined">apartment</span></div>
                     <div className="grow">
                       <div className="job-title">{j.title}</div>
                       <div>{j.company}</div>
@@ -235,7 +235,7 @@ function JobDetailPane({ job, me, onChange, onSavedChange, onDeleted }) {
   return (
     <div>
       <div className="row" style={{ alignItems: "flex-start" }}>
-        <div className="job-logo" style={{ width: 56, height: 56, fontSize: 26 }}>🏢</div>
+        <div className="job-logo" style={{ width: 56, height: 56, fontSize: 26 }}><span className="material-symbols-outlined">apartment</span></div>
         <div className="grow">
           <h2 style={{ margin: 0 }}>{job.title}</h2>
           <div>{job.company} · {job.location || "—"} · {timeAgo(job.created_at)}</div>
@@ -260,17 +260,17 @@ function JobDetailPane({ job, me, onChange, onSavedChange, onDeleted }) {
           <button className="secondary" onClick={toggleSave}>{job.is_saved ? "★ Saved" : "Save"}</button>
         )}
         <Link to={`/messages/${job.poster_id}`}>
-          <button className="ghost">💬 Message recruiter</button>
+          <button className="ghost"><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message recruiter</button>
         </Link>
       </div>
 
       {applying && !isOwner && !job.my_application && (
-        <div className="card" style={{ background: "#f8fafd" }}>
+        <div className="card" style={{ background: "var(--surface-low)" }}>
           <form onSubmit={submitApply}>
             <label>Cover letter</label>
             <textarea value={cover} onChange={(e) => setCover(e.target.value)} placeholder="Why are you a great fit?" />
             <label className="secondary small" style={{ cursor: "pointer", display: "inline-block" }}>
-              📎 {resume ? "Change résumé" : "Attach résumé"}
+              <span className="material-symbols-outlined ui-ico">attach_file</span> {resume ? "Change résumé" : "Attach résumé"}
               <input type="file" onChange={pickResume} style={{ display: "none" }} accept=".pdf,.doc,.docx,.txt" />
             </label>
             {resume && <div style={{ marginTop: 8 }}><DocAttach {...resume} /></div>}

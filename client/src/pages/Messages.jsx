@@ -86,7 +86,7 @@ export default function Messages() {
         <div className="chat">
           {/* Conversation list */}
           <div className="chat-list">
-            <div className="chat-list-head"><span>Messaging</span><span className="muted">✎ ⋯</span></div>
+            <div className="chat-list-head"><span>Messaging</span><span className="muted"><span className="material-symbols-outlined ui-ico">edit_square</span> <span className="material-symbols-outlined ui-ico">more_horiz</span></span></div>
             <div className="chat-search">
               <div style={{ position: "relative" }}>
                 <span className="material-symbols-outlined" style={{ position: "absolute", left: 8, top: 8, fontSize: 18, color: "var(--muted)" }}>search</span>
@@ -124,7 +124,7 @@ export default function Messages() {
           <div className="chat-main">
             {!selectedId ? (
               <div className="spinner" style={{ margin: "auto" }}>
-                💬<br />Select a conversation to start messaging.
+                <span className="material-symbols-outlined empty-ico">forum</span><br />Select a conversation to start messaging.
               </div>
             ) : (
               <>
@@ -134,7 +134,7 @@ export default function Messages() {
                     <strong>{partner?.name || "…"}</strong>
                     <div className="muted tiny">{partner?.headline}</div>
                   </div>
-                  <div className="icons"><span>📹</span><span>📞</span><span>⭐</span><span>⋯</span></div>
+                  <div className="icons"><span className="material-symbols-outlined">videocam</span><span className="material-symbols-outlined">call</span><span className="material-symbols-outlined">star</span><span className="material-symbols-outlined">more_horiz</span></div>
                 </div>
                 <div className="chat-messages">
                   {messages.map((m, i) => {
@@ -156,7 +156,7 @@ export default function Messages() {
                 <form className="chat-input-bar" onSubmit={send}>
                   <textarea placeholder="Write a message…" value={draft} onChange={onDraftChange} onKeyDown={onKey} autoFocus />
                   <div className="chat-tools">
-                    <span>🖼️</span><span>📎</span><span>😊</span><span>GIF</span>
+                    <span><span className="material-symbols-outlined ui-ico">image</span></span><span><span className="material-symbols-outlined ui-ico">attach_file</span></span><span><span className="material-symbols-outlined ui-ico">mood</span></span><span className="gif-tag">GIF</span>
                     <button type="submit" className="send" disabled={!draft.trim()}>Send</button>
                   </div>
                   <div className="tiny muted" style={{ textAlign: "right", marginTop: 2 }}>Press Enter to send</div>

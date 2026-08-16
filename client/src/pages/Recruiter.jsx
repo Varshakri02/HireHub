@@ -44,8 +44,8 @@ export default function Recruiter() {
   return (
     <div className="container" style={{ maxWidth: 900 }}>
       <div className="spread" style={{ alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>🧑‍💼 Recruiter Dashboard</h2>
-        <Link to="/messages"><button className="secondary small">💬 Messages</button></Link>
+        <h2 style={{ margin: 0 }}><span className="material-symbols-outlined head-ico">badge</span> Recruiter Dashboard</h2>
+        <Link to="/messages"><button className="secondary small"><span className="material-symbols-outlined ui-ico">chat_bubble</span> Messages</button></Link>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 16 }}>
