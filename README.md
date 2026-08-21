@@ -19,7 +19,12 @@ Admin dashboard: log in as `admin@hirehub.com`.
 
 - **Auth** — register / login with JWT + bcrypt password hashing.
 - **Profiles** — headline, bio, location, avatar (uploaded image); edit your own.
-- **Feed** — post text and/or attach documents (PDF, Word, txt, images).
+- **Feed** — post text and/or attach documents (PDF, Word, txt, images), with real
+  likes and comments (persisted; post owners can moderate replies on their posts).
+- **Connections** — send/accept/decline invitations, withdraw or remove, connection
+  counts on profiles, and suggestions that exclude anyone already in your graph.
+- **Notifications** — a real inbox with unread badges, pushed live over Socket.io:
+  likes, comments, invitations, acceptances, new applicants, status changes.
 - **Jobs** — post jobs, search, view detail, apply with cover letter + résumé upload.
 - **Applications** — track status (pending / reviewing / accepted / rejected); posters
   manage applicants per job.

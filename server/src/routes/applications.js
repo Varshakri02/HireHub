@@ -2,6 +2,7 @@
 import { Router } from "express";
 import db from "../db.js";
 import { requireAuth } from "../auth.js";
+import { notify } from "../notifications-store.js";
 
 const router = Router();
 
@@ -30,6 +31,15 @@ router.post("/", requireAuth, (req, res) => {
   const app = db
     .prepare("SELECT * FROM applications WHERE id = ?")
     .get(info.lastInsertRowid);
+
+  // Tell the poster someone applied.
+  notify({
+    userId: job.poster_id,
+    actorId: req.user.id,
+    type: "application_received",
+    entityId: job.id,
+    body: job.title,
+  });
   res.status(201).json(app);
 });
 
@@ -77,6 +87,18 @@ router.put("/:id/status", requireAuth, (req, res) => {
     return res.status(403).json({ error: "Not authorized" });
   }
   db.prepare("UPDATE applications SET status = ? WHERE id = ?").run(status, req.params.id);
+
+  // Tell the applicant their status moved. body is "<job title>|<status>" so the
+  // client can render the pill without another fetch.
+  if (app.status !== status) {
+    notify({
+      userId: app.applicant_id,
+      actorId: req.user.id,
+      type: "application_status",
+      entityId: job.id,
+      body: `${job.title}|${status}`,
+    });
+  }
   res.json({ ...app, status });
 });
 

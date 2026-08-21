@@ -1,6 +1,6 @@
 // HireHub top navigation: logo, search, icon links with live unread badge.
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getSocket } from "../socket.js";
 import api from "../api.js";
@@ -11,7 +11,7 @@ const LINKS = [
   { to: "/network", ico: "group", label: "Network" },
   { to: "/jobs", ico: "work", label: "Jobs" },
   { to: "/messages", ico: "chat_bubble", label: "Messaging", key: "messaging" },
-  { to: "/notifications", ico: "notifications", label: "Notifications" },
+  { to: "/notifications", ico: "notifications", label: "Notifications", key: "notifications" },
 ];
 
 const Ico = ({ name }) => <span className="material-symbols-outlined nav-ico">{name}</span>;
@@ -19,7 +19,9 @@ const Ico = ({ name }) => <span className="material-symbols-outlined nav-ico">{n
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [unread, setUnread] = useState(0);
+  const [notifs, setNotifs] = useState(0);
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -28,19 +30,38 @@ export default function Navbar() {
       .get("/messages")
       .then((r) => setUnread(r.data.reduce((s, c) => s + (c.unread || 0), 0)))
       .catch(() => {});
+    api
+      .get("/notifications/unread-count")
+      .then((r) => setNotifs(r.data.count))
+      .catch(() => {});
   }, [user]);
+
+  // The notifications page marks everything read, so clear the badge when the
+  // user navigates there rather than waiting for a refetch.
+  useEffect(() => {
+    if (pathname.startsWith("/notifications")) setNotifs(0);
+  }, [pathname]);
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket || !user) return;
     const onNew = (msg) => {
-      if (msg.sender_id !== user.id && !location.pathname.startsWith("/messages")) {
+      if (msg.sender_id !== user.id && !pathname.startsWith("/messages")) {
         setUnread((n) => n + 1);
       }
     };
+    // Already sitting on /notifications? The page renders the row itself and marks
+    // it read, so don't raise a badge for it.
+    const onNotif = () => {
+      if (!pathname.startsWith("/notifications")) setNotifs((n) => n + 1);
+    };
     socket.on("message:new", onNew);
-    return () => socket.off("message:new", onNew);
-  }, [user]);
+    socket.on("notification:new", onNotif);
+    return () => {
+      socket.off("message:new", onNew);
+      socket.off("notification:new", onNotif);
+    };
+  }, [user, pathname]);
 
   if (!user) return null;
 
@@ -75,9 +96,8 @@ export default function Navbar() {
             <NavLink key={l.to} to={l.to} end={l.end} className="nav-item">
               <Ico name={l.ico} />
               <span>{l.label}</span>
-              {l.key === "messaging" && unread > 0 && (
-                <span className="badge">{unread}</span>
-              )}
+              {l.key === "messaging" && unread > 0 && <span className="badge">{unread}</span>}
+              {l.key === "notifications" && notifs > 0 && <span className="badge">{notifs}</span>}
             </NavLink>
           ))}
           <div className="nav-sep" />

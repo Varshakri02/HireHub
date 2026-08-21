@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api, { errMsg, uploadFile } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
+import ConnectButton from "../components/ConnectButton.jsx";
 import { timeAgo } from "../util.js";
 
 const BLANK_EXP = { title: "", company: "", emp_type: "Full-time", location: "", start_date: "", end_date: "", description: "" };
@@ -28,6 +29,7 @@ export default function Profile() {
   const [exps, setExps] = useState([]);
   const [people, setPeople] = useState([]);
   const [postings, setPostings] = useState([]);
+  const [connCount, setConnCount] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [addExp, setAddExp] = useState(false);
@@ -43,6 +45,7 @@ export default function Profile() {
     api.get(`/experiences/user/${id}`).then((r) => setExps(r.data)).catch(() => {});
     api.get(`/users/suggestions/people`).then((r) => setPeople(r.data.filter((p) => p.id !== Number(id)))).catch(() => {});
     api.get(`/jobs/by/${id}`).then((r) => setPostings(r.data)).catch(() => setPostings([]));
+    api.get(`/connections/count/${id}`).then((r) => setConnCount(r.data.count)).catch(() => setConnCount(null));
   }, [id]);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -108,9 +111,19 @@ export default function Profile() {
                   {isMe ? (
                     <button onClick={() => setEditing(true)}>Edit Profile</button>
                   ) : (
-                    <Link to={`/messages/${profile.id}`}><button><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button></Link>
+                    <>
+                      <ConnectButton
+                        userId={profile.id}
+                        size=""
+                        onChange={() =>
+                          api.get(`/connections/count/${id}`)
+                            .then((r) => setConnCount(r.data.count))
+                            .catch(() => {})
+                        }
+                      />
+                      <Link to={`/messages/${profile.id}`}><button className="secondary"><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button></Link>
+                    </>
                   )}
-                  <button className="secondary">Share</button>
                 </div>
               </div>
             </div>
@@ -125,6 +138,10 @@ export default function Profile() {
                 <div>
                   <div className="v">{exps.length}</div>
                   <div className="k">Roles</div>
+                </div>
+                <div>
+                  <div className="v">{connCount ?? "—"}</div>
+                  <div className="k">Connections</div>
                 </div>
               </div>
               <div className="pbar-label"><span>Profile completeness</span><span>{completeness}%</span></div>

@@ -107,6 +107,64 @@ CREATE INDEX IF NOT EXISTS idx_msgs_pair         ON messages(sender_id, receiver
 CREATE INDEX IF NOT EXISTS idx_exp_user           ON experiences(user_id);
 `);
 
+
+// ---- Social layer (likes, comments, connections, notifications) -------------
+db.exec(`
+CREATE TABLE IF NOT EXISTS post_likes (
+  post_id    INTEGER NOT NULL,
+  user_id    INTEGER NOT NULL,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (post_id, user_id),
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS post_comments (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id    INTEGER NOT NULL,
+  author_id  INTEGER NOT NULL,
+  body       TEXT    NOT NULL,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (post_id)   REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- One row per pair. requester_id is whoever sent the invite; status flips to
+-- 'accepted' when the addressee accepts. Declines/withdrawals delete the row.
+CREATE TABLE IF NOT EXISTS connections (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  requester_id  INTEGER NOT NULL,
+  addressee_id  INTEGER NOT NULL,
+  status        TEXT    NOT NULL DEFAULT 'pending',
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  responded_at  TEXT,
+  UNIQUE (requester_id, addressee_id),
+  CHECK (requester_id <> addressee_id),
+  FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (addressee_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- user_id is the recipient. actor_id is who caused it (nullable for system rows).
+-- entity_id points at the post/job/connection the notification is about.
+CREATE TABLE IF NOT EXISTS notifications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL,
+  actor_id   INTEGER,
+  type       TEXT    NOT NULL,
+  entity_id  INTEGER,
+  body       TEXT    DEFAULT '',
+  read       INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_likes_post      ON post_likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post    ON post_comments(post_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_conn_requester   ON connections(requester_id, status);
+CREATE INDEX IF NOT EXISTS idx_conn_addressee   ON connections(addressee_id, status);
+CREATE INDEX IF NOT EXISTS idx_notif_user       ON notifications(user_id, read, created_at);
+`);
 // Additive migrations for DBs created before these columns existed.
 // node:sqlite has no "ADD COLUMN IF NOT EXISTS", so ignore "duplicate column" errors.
 for (const stmt of [

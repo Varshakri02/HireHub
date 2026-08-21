@@ -4,6 +4,8 @@ import api, { errMsg, uploadFile } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import Avatar from "../components/Avatar.jsx";
 import DocAttach from "../components/DocAttach.jsx";
+import Comments from "../components/Comments.jsx";
+import ConnectButton from "../components/ConnectButton.jsx";
 import { timeAgo } from "../util.js";
 
 const NEWS = [
@@ -25,7 +27,7 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [people, setPeople] = useState([]);
   const [stats, setStats] = useState({ posts: 0, applications: 0 });
-  const [liked, setLiked] = useState({});
+  const [openComments, setOpenComments] = useState({});
   const [composing, setComposing] = useState(false);
   const fileRef = useRef();
 
@@ -34,7 +36,9 @@ export default function Feed() {
   }
   useEffect(load, []);
   useEffect(() => {
-    api.get("/users/suggestions/people").then((r) => setPeople(r.data)).catch(() => {});
+    api.get("/connections/suggestions", { params: { limit: 4 } })
+      .then((r) => setPeople(r.data))
+      .catch(() => {});
     if (user) {
       Promise.all([
         api.get(`/posts/user/${user.id}`).then((r) => r.data.length).catch(() => 0),
@@ -64,6 +68,43 @@ export default function Feed() {
       setStats((s) => ({ ...s, posts: s.posts + 1 }));
     } catch (err) { setError(errMsg(err)); }
     finally { setBusy(false); }
+  }
+
+  // Replace one post in the list with the server's fresh copy (counts + my like).
+  function patchPost(next) {
+    setPosts((cur) => cur.map((p) => (p.id === next.id ? next : p)));
+  }
+
+  // Optimistic toggle: flip locally, then reconcile with the server's counts.
+  async function toggleLike(post) {
+    const optimistic = {
+      ...post,
+      liked_by_me: post.liked_by_me ? 0 : 1,
+      like_count: post.like_count + (post.liked_by_me ? -1 : 1),
+    };
+    patchPost(optimistic);
+    try {
+      const r = post.liked_by_me
+        ? await api.delete(`/posts/${post.id}/like`)
+        : await api.post(`/posts/${post.id}/like`);
+      patchPost(r.data);
+    } catch (e) {
+      patchPost(post); // roll back
+      setError(errMsg(e));
+    }
+  }
+
+  function bumpComments(id, delta) {
+    setPosts((cur) =>
+      cur.map((p) => (p.id === id ? { ...p, comment_count: Math.max(0, p.comment_count + delta) } : p))
+    );
+  }
+
+  // "You and 3 others" / "12 people" — reads naturally at every count.
+  function likeLabel(p) {
+    const others = p.like_count - (p.liked_by_me ? 1 : 0);
+    if (p.liked_by_me) return others === 0 ? "You" : `You and ${others} other${others === 1 ? "" : "s"}`;
+    return `${p.like_count} ${p.like_count === 1 ? "person" : "people"}`;
   }
 
   async function del(id) {
@@ -169,16 +210,41 @@ export default function Feed() {
               ) : (
                 <DocAttach url={p.doc_url} name={p.doc_name} type={p.doc_type} />
               )}
-              <div className="post-counts">
-                <span><span className="material-symbols-outlined react-ico fill">favorite</span> {liked[p.id] ? "You and others" : "842 others"}</span>
-                <span>42 comments · 12 reposts</span>
-              </div>
+              {(p.like_count > 0 || p.comment_count > 0) && (
+                <div className="post-counts">
+                  <span>
+                    {p.like_count > 0 && (
+                      <>
+                        <span className="material-symbols-outlined react-ico fill">favorite</span> {likeLabel(p)}
+                      </>
+                    )}
+                  </span>
+                  {p.comment_count > 0 && (
+                    <button className="link-btn" onClick={() => setOpenComments((o) => ({ ...o, [p.id]: !o[p.id] }))}>
+                      {p.comment_count} comment{p.comment_count === 1 ? "" : "s"}
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="post-actions">
-                <button className={`act ${liked[p.id] ? "liked" : ""}`} onClick={() => setLiked((l) => ({ ...l, [p.id]: !l[p.id] }))}><span className="material-symbols-outlined ui-ico">thumb_up</span> Like</button>
-                <button className="act"><span className="material-symbols-outlined ui-ico">mode_comment</span> Comment</button>
-                <button className="act"><span className="material-symbols-outlined ui-ico">repeat</span> Repost</button>
+                <button className={`act ${p.liked_by_me ? "liked" : ""}`} onClick={() => toggleLike(p)}>
+                  <span className="material-symbols-outlined ui-ico">thumb_up</span> {p.liked_by_me ? "Liked" : "Like"}
+                </button>
+                <button
+                  className={`act ${openComments[p.id] ? "liked" : ""}`}
+                  onClick={() => setOpenComments((o) => ({ ...o, [p.id]: !o[p.id] }))}
+                >
+                  <span className="material-symbols-outlined ui-ico">mode_comment</span> Comment
+                </button>
                 <Link to={`/messages/${p.author_id}`} className="act" style={{ textDecoration: "none" }}><span className="material-symbols-outlined ui-ico">send</span> Send</Link>
               </div>
+              {openComments[p.id] && (
+                <Comments
+                  postId={p.id}
+                  postAuthorId={p.author_id}
+                  onCountChange={(d) => bumpComments(p.id, d)}
+                />
+              )}
             </div>
           ))
         )}
@@ -196,17 +262,27 @@ export default function Feed() {
           ))}
         </div>
         <div className="card">
-          <strong>Add to your feed</strong>
-          {people.length === 0 && <div className="muted tiny" style={{ marginTop: 8 }}>Invite colleagues to see suggestions.</div>}
+          <div className="spread">
+            <strong>People you may know</strong>
+            <Link to="/network" className="tiny">See all</Link>
+          </div>
+          {people.length === 0 && <div className="muted tiny" style={{ marginTop: 8 }}>No suggestions right now.</div>}
           {people.map((p) => (
             <div className="people-item" key={p.id}>
               <Link to={`/profile/${p.id}`}><Avatar user={p} size={44} /></Link>
               <div className="grow">
                 <Link to={`/profile/${p.id}`}><strong>{p.name}</strong></Link>
                 <div className="muted tiny">{p.headline}</div>
-                <Link to={`/messages/${p.id}`}>
-                  <button className="ghost small" style={{ marginTop: 6 }}><span className="material-symbols-outlined ui-ico">chat_bubble</span> Message</button>
-                </Link>
+                <div style={{ marginTop: 6 }}>
+                  <ConnectButton
+                    userId={p.id}
+                    initial={{ state: "none", connection_id: null }}
+                    onChange={(rel) => {
+                      // Once connected/invited they no longer belong in suggestions.
+                      if (rel.state !== "none") setPeople((cur) => cur.filter((x) => x.id !== p.id));
+                    }}
+                  />
+                </div>
               </div>
             </div>
           ))}

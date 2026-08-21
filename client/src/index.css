@@ -562,7 +562,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 2px s
   background: linear-gradient(150deg, rgba(255, 106, 26, 0.14), rgba(28, 28, 34, 0.6));
   border: 1px solid var(--brand-line); border-radius: 14px; padding: 20px 24px; min-width: 240px;
 }
-.pstat-grid { display: flex; gap: 32px; margin-bottom: 14px; }
+.pstat-grid { display: flex; flex-wrap: wrap; gap: 26px; margin-bottom: 14px; }
 .pstat .k { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; font-family: var(--font-mono); }
 .pstat .v { font-family: var(--font-head); font-size: 27px; font-weight: 700; color: var(--brand); line-height: 1.15; letter-spacing: -0.03em; }
 .pbar-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; font-family: var(--font-mono); }
@@ -955,4 +955,52 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 2px s
   .reveal { opacity: 1; transform: none; }
   .lp-hero-canvas, .lp-grid-floor { display: none; }
   .spinner { color: var(--muted); background: none; -webkit-background-clip: border-box; background-clip: border-box; }
+}
+
+/* ---------- Social layer: tabs, people grid, comments, notifications ---------- */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 18px; }
+.tab {
+  display: flex; align-items: center; gap: 7px; padding: 9px 15px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 9999px; color: var(--muted);
+  font-weight: 600; font-size: 13px; box-shadow: none; overflow: visible;
+}
+.tab::after { display: none; }
+.tab:hover { background: var(--hover); color: var(--text); box-shadow: none; transform: none; }
+.tab.active { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-dark); }
+.tab-count {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700; line-height: 1;
+  padding: 3px 6px; border-radius: 9999px; background: var(--surface-high); color: var(--text);
+}
+.tab.active .tab-count { background: var(--brand); color: var(--ink-on-brand); }
+
+.person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.person-card { margin-bottom: 0; display: flex; flex-direction: column; }
+.person-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; margin-top: 4px; }
+.person-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.person-actions > *, .person-actions button { width: 100%; }
+/* ConnectButton renders a span wrapper so the incoming state can add "Ignore". */
+.connect-wrap { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.connect-wrap > button { flex: 1; }
+
+/* Plain-text button that reads as a link (comment counts, "show more"). */
+.link-btn {
+  background: none; box-shadow: none; overflow: visible; padding: 0; color: var(--muted2);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+}
+.link-btn::after { display: none; }
+.link-btn:hover { background: none; box-shadow: none; transform: none; color: var(--brand); text-decoration: underline; }
+
+.comments { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 10px; }
+.comment-new { display: flex; gap: 10px; align-items: center; }
+.comment-new input { flex: 1; }
+.comment { display: flex; gap: 10px; margin-top: 12px; align-items: flex-start; }
+.comment-bubble { background: var(--surface-low); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; }
+.comment-body { white-space: pre-wrap; margin-top: 4px; }
+
+.notif-row { color: var(--text); transition: border-color 0.2s, background 0.2s; }
+.notif-row:hover { border-color: var(--border-strong); }
+.notif-row.unread { border-left: 3px solid var(--brand); background: var(--surface-low); }
+.notif-kind {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 5px; margin-top: 3px;
 }

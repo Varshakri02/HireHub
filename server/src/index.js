@@ -8,6 +8,9 @@ import { PORT, CLIENT_ORIGIN, UPLOAD_DIR } from "./config.js";
 import { verifyToken } from "./auth.js";
 import { insertMessage, markRead } from "./messages-store.js";
 import { seedDemo } from "./seed.js";
+import { seedSocial } from "./social-seed.js";
+import { setIO } from "./realtime.js";
+import { backfillNotifications } from "./notifications-store.js";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
@@ -18,9 +21,15 @@ import messageRoutes from "./routes/messages.js";
 import uploadRoutes from "./routes/upload.js";
 import experienceRoutes from "./routes/experiences.js";
 import adminRoutes from "./routes/admin.js";
+import connectionRoutes from "./routes/connections.js";
+import notificationRoutes from "./routes/notifications.js";
 
 // Populate demo recruiters/jobs/applications on first boot (idempotent).
 seedDemo();
+// Demo posts + connection graph + likes/comments (idempotent).
+seedSocial();
+// Mint notifications for activity that predates the notifications table.
+backfillNotifications();
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN }));
@@ -39,9 +48,13 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/experiences", experienceRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/connections", connectionRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 const server = http.createServer(app);
 const io = new SocketServer(server, { cors: { origin: CLIENT_ORIGIN } });
+// Share the instance so REST routes can push notifications (see realtime.js).
+setIO(io);
 
 // Authenticate every socket via the JWT sent in handshake auth.
 io.use((socket, next) => {
