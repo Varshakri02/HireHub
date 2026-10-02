@@ -38,6 +38,8 @@ app.use(express.json({ limit: "1mb" }));
 // Uploaded documents served statically.
 app.use("/uploads", express.static(UPLOAD_DIR));
 
+// The API has no UI of its own; send anyone opening the bare URL to the client.
+app.get("/", (req, res) => res.redirect(CLIENT_ORIGIN));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
