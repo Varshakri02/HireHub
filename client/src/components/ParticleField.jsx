@@ -1,4 +1,4 @@
-// 3D ember field for the landing hero.
+// 3D particle field for the landing hero.
 // Hand-rolled perspective projection on a 2D canvas — no three.js, no new dependencies.
 // Particles live in a rotating volume; depth drives size, alpha and blur so the field
 // reads as real space rather than a flat dot pattern. Pointer nudges the camera.
@@ -129,7 +129,7 @@ export default function ParticleField({ className = "" }) {
           const d2 = dx * dx + dy * dy;
           if (d2 > LINK_DIST * LINK_DIST) continue;
           const t = 1 - Math.sqrt(d2) / LINK_DIST;
-          ctx.strokeStyle = `rgba(255, 122, 44, ${(t * 0.16 * a.alpha * b.alpha).toFixed(3)})`;
+          ctx.strokeStyle = `rgba(10, 102, 194, ${(t * 0.16 * a.alpha * b.alpha).toFixed(3)})`;
           ctx.beginPath();
           ctx.moveTo(a.sx, a.sy);
           ctx.lineTo(b.sx, b.sy);
@@ -137,23 +137,23 @@ export default function ParticleField({ className = "" }) {
         }
       }
 
-      // embers, additive so overlaps bloom
-      ctx.globalCompositeOperation = "lighter";
+      // particles, normal blending so they read on the light canvas
+      ctx.globalCompositeOperation = "source-over";
       for (const p of projected) {
-        // hot sparks skew pale-amber, cool ones deep ember
-        const r = 255;
-        const g = Math.round(96 + p.heat * 92);
-        const b = Math.round(20 + p.heat * 70);
+        // bright ones skew light blue, cool ones deep LinkedIn blue
+        const r = Math.round(10 + p.heat * 102);
+        const g = Math.round(102 + p.heat * 79);
+        const b = Math.round(194 + p.heat * 55);
         const glow = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, p.radius * 4.5);
-        glow.addColorStop(0, `rgba(${r}, ${g + 40}, ${b + 40}, ${p.alpha})`);
+        glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${p.alpha * 0.55})`);
         glow.addColorStop(0.35, `rgba(${r}, ${g}, ${b}, ${p.alpha * 0.42})`);
-        glow.addColorStop(1, "rgba(255, 106, 26, 0)");
+        glow.addColorStop(1, "rgba(10, 102, 194, 0)");
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, p.radius * 4.5, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = `rgba(255, ${g + 70}, ${b + 80}, ${Math.min(1, p.alpha * 1.15)})`;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${Math.min(1, p.alpha * 1.15)})`;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, p.radius, 0, Math.PI * 2);
         ctx.fill();

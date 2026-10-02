@@ -1,5 +1,5 @@
 // Public landing page — same sections, links and search behaviour as before.
-// Visual layer only: 3D ember field behind the hero, perspective grid floor,
+// Visual layer only: 3D particle field behind the hero, perspective grid floor,
 // marquee trust strip and an asymmetric bento of categories.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -72,7 +72,7 @@ export default function Landing() {
       </nav>
 
       <main style={{ flex: 1 }}>
-        {/* Hero — ember field + perspective floor sit behind the content */}
+        {/* Hero — particle field + perspective floor sit behind the content */}
         <div className="lp-hero-stage">
           <div className="lp-hero-glow" aria-hidden="true" />
           <ParticleField className="lp-hero-canvas" />
